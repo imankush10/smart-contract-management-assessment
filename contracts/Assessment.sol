@@ -10,6 +10,11 @@ contract Assessment {
     event Deposit(uint256 amount);
     event Withdraw(uint256 amount);
 
+    struct Player {
+        address playerAddress;
+        uint256 winning;
+    }
+
     constructor(uint initBalance) payable {
         owner = payable(msg.sender);
         balance = initBalance;
@@ -57,4 +62,51 @@ contract Assessment {
         // emit the event
         emit Withdraw(_withdrawAmount);
     }
+
+    // Leaderboard
+    mapping (address => uint) moneyWon;
+    Player[] public leaderboard;
+
+    function addToLeaderBoard(address _address, uint amountWon) public {
+        moneyWon[_address]+=amountWon;
+
+        bool alreadyExist = false;
+        for(uint i=0;i<leaderboard.length;i++){
+            if(leaderboard[i].playerAddress==_address){
+                leaderboard[i].winning = moneyWon[_address];
+                alreadyExist = true;
+                break;
+            }
+        }
+
+        if(!alreadyExist) {
+            leaderboard.push(Player(_address,moneyWon[_address]));
+        }
+    }
+    function getLeaderboard() public view returns (Player[] memory) {
+        return leaderboard;
+    }
+
+    // History
+    struct Transaction {
+        address user;
+        string resultType;
+        uint256 timestamp;
+    }
+    mapping(address => Transaction[]) public history;
+
+     function addToHistory(address _user, string memory _type) public {
+        history[_user].push(Transaction({
+            user: _user,
+            resultType:_type,
+            timestamp: block.timestamp
+        }));
+        
+    }
+
+    function getHistory(address _user) public view returns (Transaction[] memory) {
+        return history[_user];
+    }
+     
+
 }
